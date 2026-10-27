@@ -1,0 +1,71 @@
+{
+  "name": "CodeScanReport",
+  "type": "object",
+  "properties": {
+    "client_name": {
+      "type": "string",
+      "description": "Full name of the person who submitted the code"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Email address used to find this report later"
+    },
+    "code_language": {
+      "type": "string",
+      "description": "Languages detected in the submitted files, e.g. JavaScript, Python"
+    },
+    "file_names": {
+      "type": "string",
+      "description": "Comma separated list of the submitted file names"
+    },
+    "score": {
+      "type": "number",
+      "description": "Overall code security score out of 100"
+    },
+    "grade": {
+      "type": "string",
+      "description": "Letter grade A-F derived from the score"
+    },
+    "findings": {
+      "type": "array",
+      "description": "One entry per issue: id, title, severity, file, line, evidence, fix steps and a code_fix before/after snippet",
+      "items": {
+        "type": "object"
+      }
+    },
+    "scan_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the code was analysed"
+    }
+  },
+  "required": [
+    "client_name",
+    "client_email",
+    "score",
+    "grade",
+    "findings"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "name": "ScanReport",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string",
+      "description": "The Client record this report belongs to"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Name of the person who requested the scan"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Email address used to find this report"
+    },
+    "url": {
+      "type": "string",
+      "description": "The website address that was scanned"
+    },
+    "scan_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the scan ran"
+    },
+    "score": {
+      "type": "number",
+      "description": "Overall security score out of 100"
+    },
+    "findings": {
+      "type": "array",
+      "description": "One entry per check: id, title, status (pass/warn/fail), summary, evidence and fix steps",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "url",
+    "score",
+    "findings"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Full name of the person who requested the scan"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address used to find this client's past reports"
+    },
+    "site_url": {
+      "type": "string",
+      "description": "The website address that was scanned"
+    },
+    "verification_status": {
+      "type": "string",
+      "description": "verified = the client confirmed they own or are authorised to scan the site",
+      "default": "verified"
+    },
+    "last_scan_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this client last ran a scan"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "site_url"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
