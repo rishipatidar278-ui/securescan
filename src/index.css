@@ -107,3 +107,48 @@
     -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 10%, transparent 72%);
   }
 }
+
+@layer base {
+  html,
+  body {
+    overscroll-behavior-y: none;
+    overflow-x: clip;
+  }
+
+  main {
+    overscroll-behavior-y: none;
+  }
+
+  button,
+  a,
+  label,
+  [role="button"],
+  svg {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  input,
+  textarea,
+  pre,
+  code,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  @media (max-width: 767px) {
+    body {
+      padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+    }
+
+    button,
+    a[role="button"],
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      min-height: 44px;
+    }
+  }
+}

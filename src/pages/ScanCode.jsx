@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import PageTransition from "@/components/PageTransition";
 import CodeScanForm from "@/components/code/CodeScanForm";
 import { base44 } from "@/api/base44Client";
 
@@ -47,6 +48,7 @@ export default function ScanCode() {
       <main className="relative">
         <div className="grid-trace pointer-events-none absolute inset-x-0 top-0 h-72 opacity-[0.45]" />
         <div className="relative mx-auto max-w-4xl px-5 py-14 lg:py-20">
+          <PageTransition>
           <div className="space-y-8">
             <div>
               <Link
@@ -92,6 +94,7 @@ export default function ScanCode() {
               </>
             )}
           </div>
+          </PageTransition>
         </div>
       </main>
       <SiteFooter />

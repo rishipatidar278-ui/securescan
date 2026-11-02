@@ -12,6 +12,8 @@ import Reports from '@/pages/Reports';
 import Report from '@/pages/Report';
 import ScanCode from '@/pages/ScanCode';
 import CodeReport from '@/pages/CodeReport';
+import Settings from '@/pages/Settings';
+import BottomNav from '@/components/BottomNav';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -39,15 +41,19 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/scan" element={<Scan />} />
-      <Route path="/scan-code" element={<ScanCode />} />
-      <Route path="/code-report/:id" element={<CodeReport />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/report/:id" element={<Report />} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/scan" element={<Scan />} />
+        <Route path="/scan-code" element={<ScanCode />} />
+        <Route path="/code-report/:id" element={<CodeReport />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/report/:id" element={<Report />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+      <BottomNav />
+    </>
   );
 };
 

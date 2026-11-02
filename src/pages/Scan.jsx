@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import PageTransition from "@/components/PageTransition";
 import ScanForm from "@/components/scan/ScanForm";
 import ScanProgress from "@/components/scan/ScanProgress";
 import { base44 } from "@/api/base44Client";
@@ -39,6 +40,7 @@ export default function Scan() {
       <main className="relative">
         <div className="grid-trace pointer-events-none absolute inset-x-0 top-0 h-72 opacity-[0.45]" />
         <div className="relative mx-auto max-w-4xl px-5 py-14 lg:py-20">
+          <PageTransition>
           <div className="space-y-8">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-signal">New scan</p>
@@ -64,6 +66,7 @@ export default function Scan() {
               </>
             )}
           </div>
+          </PageTransition>
         </div>
       </main>
       <SiteFooter />

@@ -7,8 +7,11 @@ export default function ScoreRing({ score = 0, size = 150, strokeWidth = 9, tone
   const stroke = TONES[tone] || (safeScore >= 80 ? TONES.signal : safeScore >= 55 ? TONES.warn : TONES.danger);
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+    <div
+      className="relative inline-flex shrink-0 items-center justify-center"
+      style={{ width: `min(${size}px, 34vw)`, height: `min(${size}px, 34vw)` }}
+    >
+      <svg width="100%" height="100%" viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
         <circle
           cx={size / 2}
           cy={size / 2}

@@ -4,6 +4,8 @@ import { Loader2, Search } from "lucide-react";
 import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import PageTransition from "@/components/PageTransition";
+import PullToRefresh from "@/components/PullToRefresh";
 import ReportListCard from "@/components/report/ReportListCard";
 import CodeReportListCard from "@/components/report/CodeReportListCard";
 import { base44 } from "@/api/base44Client";
@@ -21,6 +23,23 @@ export default function Reports() {
   const [reports, setReports] = useState([]);
   const [codeReports, setCodeReports] = useState([]);
   const [error, setError] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const messageFor = (err) =>
+    err?.response?.data?.error || err?.message || "Your reports could not be loaded. Please try again.";
+
+  const loadReports = async (emailValue) => {
+    const [siteResponse, codeResponse] = await Promise.all([
+      base44.functions.invoke("getClientReports", { email: emailValue }),
+      base44.functions.invoke("getCodeReports", { email: emailValue }),
+    ]);
+    const siteData = siteResponse?.data || {};
+    const codeData = codeResponse?.data || {};
+    if (siteData.error) throw new Error(siteData.error);
+    if (codeData.error) throw new Error(codeData.error);
+    setReports(siteData.reports || []);
+    setCodeReports(codeData.reports || []);
+  };
 
   const lookup = async (event) => {
     event.preventDefault();
@@ -33,21 +52,26 @@ export default function Reports() {
     setError("");
 
     try {
-      const [siteResponse, codeResponse] = await Promise.all([
-        base44.functions.invoke("getClientReports", { email: email.trim() }),
-        base44.functions.invoke("getCodeReports", { email: email.trim() }),
-      ]);
-      const siteData = siteResponse?.data || {};
-      const codeData = codeResponse?.data || {};
-      if (siteData.error) throw new Error(siteData.error);
-      if (codeData.error) throw new Error(codeData.error);
-      setReports(siteData.reports || []);
-      setCodeReports(codeData.reports || []);
+      await loadReports(email.trim());
       setSearched(true);
     } catch (err) {
-      setError(err?.response?.data?.error || err?.message || "Your reports could not be loaded. Please try again.");
+      setError(messageFor(err));
     } finally {
       setBusy(false);
+    }
+  };
+
+  const refresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    setError("");
+
+    try {
+      await loadReports(email.trim());
+    } catch (err) {
+      setError(messageFor(err));
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -64,6 +88,7 @@ export default function Reports() {
       <main className="relative">
         <div className="grid-trace pointer-events-none absolute inset-x-0 top-0 h-72 opacity-[0.45]" />
         <div className="relative mx-auto max-w-4xl px-5 py-14 lg:py-20">
+          <PageTransition>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-signal">Reports</p>
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Find a past scan</h1>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -109,7 +134,8 @@ export default function Reports() {
           </form>
 
           {searched && (
-            <Tabs defaultValue="website" className="mt-10">
+            <PullToRefresh onRefresh={refresh} refreshing={refreshing} className="mt-10">
+            <Tabs defaultValue="website">
               <TabsList className="h-auto flex-wrap">
                 <TabsTrigger value="website" className="rounded-lg">
                   Website scans ({reports.length})
@@ -204,7 +230,9 @@ export default function Reports() {
                 )}
               </TabsContent>
             </Tabs>
+            </PullToRefresh>
           )}
+          </PageTransition>
         </div>
       </main>
       <SiteFooter />

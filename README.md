@@ -101,6 +101,18 @@ src/
     ui/              # shadcn/ui primitives
 ```
 
+## Mobile Experience
+
+SecureScan is built to feel native on Android and iOS browsers:
+
+- **Bottom navigation** on small viewports (Home / Web Scan / Code Scan / Reports) with the desktop header nav hidden below the `md` breakpoint
+- **Safe-area aware** top and bottom bars (`env(safe-area-inset-top)` / `env(safe-area-inset-bottom)`) with `viewport-fit=cover`
+- **No rubber-band bounce** (`overscroll-behavior-y: none`) and text selection disabled on controls while staying enabled inside code blocks, inputs and diff panes
+- **Framer Motion page transitions** on the scan, code scan and reports views
+- **Pull-to-refresh** on the reports list
+- **44x44px touch targets** and vertically stacked code diffs on narrow screens
+- **Settings page** with an accurate "Delete my data" flow (deletes the signed-in user's scan records, then signs out)
+
 ## Run It Locally
 
 This app is built on [Base44](https://base44.com). If you export/clone the code into a Base44 app of your own:
