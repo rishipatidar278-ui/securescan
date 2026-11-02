@@ -111,6 +111,7 @@ SecureScan is built to feel native on Android and iOS browsers:
 - **Framer Motion page transitions** on the scan, code scan and reports views
 - **Pull-to-refresh** on the reports list
 - **44x44px touch targets** and vertically stacked code diffs on narrow screens
+- **Back navigation**: a header back button on every non-home route plus "Back to reports" links on report pages, with a sensible parent-route fallback for deep links
 - **Installable PWA**: `public/manifest.json` with 192/512 and maskable icons, standalone display and theme colour, so Android can install SecureScan to the home screen like a native app
 
 - **Settings page** with an accurate "Delete my data" flow (deletes the signed-in user's scan records, then signs out)

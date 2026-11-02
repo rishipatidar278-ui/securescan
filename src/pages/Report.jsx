@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import PageTransition from "@/components/PageTransition";
+import BackLink from "@/components/BackLink";
 import ReportDashboard from "@/components/report/ReportDashboard";
 import FixKit from "@/components/report/FixKit";
 import { base44 } from "@/api/base44Client";
@@ -69,7 +71,9 @@ export default function Report() {
       <SiteNav />
       <main className="relative">
         <div className="grid-trace pointer-events-none absolute inset-x-0 top-0 h-72 opacity-[0.45]" />
-        <div className="relative mx-auto max-w-4xl px-5 py-14 lg:py-20">{children}</div>
+        <div className="relative mx-auto max-w-4xl px-5 py-14 lg:py-20">
+          <PageTransition>{children}</PageTransition>
+        </div>
       </main>
       <SiteFooter />
     </div>
@@ -102,12 +106,7 @@ export default function Report() {
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link
-            to="/reports"
-            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> All reports
-          </Link>
+          <BackLink label="Back to reports" className="-ml-0.5" />
           <h1 className="mt-3 font-heading text-3xl font-semibold tracking-tight sm:text-4xl">Security report</h1>
         </div>
         <div className="flex flex-wrap items-center gap-3">

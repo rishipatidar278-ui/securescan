@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { LogOut, Settings, ShieldCheck, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BackButton from "@/components/BackButton";
 import { useAuth } from "@/lib/AuthContext";
 import {
   DropdownMenu,
@@ -19,12 +20,15 @@ export default function SiteNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 pt-[env(safe-area-inset-top)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        <Link to="/" className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-signal/12 ring-1 ring-signal/30">
-            <ShieldCheck className="h-5 w-5 text-signal" />
-          </span>
-          <span className="font-heading text-lg font-semibold tracking-tight">SecureScan</span>
-        </Link>
+        <div className="flex min-w-0 items-center gap-2">
+          {!onLanding && <BackButton />}
+          <Link to="/" className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-signal/12 ring-1 ring-signal/30">
+              <ShieldCheck className="h-5 w-5 text-signal" />
+            </span>
+            <span className="truncate font-heading text-lg font-semibold tracking-tight">SecureScan</span>
+          </Link>
+        </div>
 
         <nav className="hidden items-center gap-4 text-sm text-muted-foreground sm:gap-7 md:flex">
           {onLanding && (
