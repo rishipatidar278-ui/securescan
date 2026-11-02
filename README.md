@@ -111,6 +111,8 @@ SecureScan is built to feel native on Android and iOS browsers:
 - **Framer Motion page transitions** on the scan, code scan and reports views
 - **Pull-to-refresh** on the reports list
 - **44x44px touch targets** and vertically stacked code diffs on narrow screens
+- **Installable PWA**: `public/manifest.json` with 192/512 and maskable icons, standalone display and theme colour, so Android can install SecureScan to the home screen like a native app
+
 - **Settings page** with an accurate "Delete my data" flow (deletes the signed-in user's scan records, then signs out)
 
 ## Run It Locally
@@ -144,3 +146,7 @@ Built by [Rishi Patidar](https://github.com/rishipatidar278-ui)
 
 ---
 *If you built it with AI, make sure it's secure.*
+
+## PWA icons
+
+`public/` ships the icon set (`icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `apple-touch-icon.png`). The current `manifest.json` points at the hosted copies used by the live app; when self-hosting, swap those `src` values to the local `/icon-*.png` paths.

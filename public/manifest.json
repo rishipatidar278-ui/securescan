@@ -1,0 +1,32 @@
+{
+  "name": "SecureScan — Security Scanner",
+  "short_name": "SecureScan",
+  "description": "Scan websites and source code for security weaknesses and get ready-to-use fixes.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0B0F14",
+  "theme_color": "#0B0F14",
+  "categories": ["security", "developer", "utilities"],
+  "icons": [
+    {
+      "src": "https://base44.app/api/apps/6ad8b8044da1db742c16009f/files/mp/public/6ad8b8044da1db742c16009f/d79a8e187_icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://base44.app/api/apps/6ad8b8044da1db742c16009f/files/mp/public/6ad8b8044da1db742c16009f/04761f0d0_icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://base44.app/api/apps/6ad8b8044da1db742c16009f/files/mp/public/6ad8b8044da1db742c16009f/2450161b3_icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
