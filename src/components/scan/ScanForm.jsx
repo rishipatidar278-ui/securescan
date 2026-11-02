@@ -1,18 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { readDraft, writeDraft } from "@/lib/tabDrafts";
 
 const FIELD_LABEL = "font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground";
+const DRAFT_KEY = "webScan";
 
 export default function ScanForm({ initialUrl = "", busy = false, onSubmit }) {
-  const [url, setUrl] = useState(initialUrl);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const draft = readDraft(DRAFT_KEY) || {};
+  const [url, setUrl] = useState(initialUrl || draft.url || "");
+  const [name, setName] = useState(draft.name || "");
+  const [email, setEmail] = useState(draft.email || "");
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    writeDraft(DRAFT_KEY, { url, name, email });
+  }, [url, name, email]);
 
   const submit = (event) => {
     event.preventDefault();

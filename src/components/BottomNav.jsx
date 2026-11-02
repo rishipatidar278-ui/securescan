@@ -1,6 +1,7 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Code2, FileText, Globe, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { historyIndex } from "@/lib/useNavigateBack";
 
 const ITEMS = [
   { label: "Home", to: "/", icon: Home, active: (path) => path === "/" },
@@ -21,6 +22,26 @@ const ITEMS = [
 
 export default function BottomNav() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  // Tab taps replace the current entry so repeated tab switching never builds a
+  // long back chain: back from a tab root goes to "/", and back from "/" exits.
+  const openTab = (event, item) => {
+    event.preventDefault();
+
+    // Re-tapping the active tab: pop its detail pages and return to the top.
+    if (pathname === item.to) {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (item.active(pathname) && historyIndex() > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate(item.to, { replace: pathname !== "/" });
+  };
 
   return (
     <nav
@@ -35,6 +56,7 @@ export default function BottomNav() {
             <li key={item.to} className="flex-1">
               <Link
                 to={item.to}
+                onClick={(event) => openTab(event, item)}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "flex min-h-[44px] min-w-[44px] select-none flex-col items-center justify-center gap-1 px-2 py-2 text-[10px] font-medium tracking-wide transition-colors",

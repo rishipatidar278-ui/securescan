@@ -1,11 +1,14 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, ScanSearch, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { readDraft, writeDraft } from "@/lib/tabDrafts";
 
+const DRAFT_KEY = "codeScan";
+const FILES_KEY = "codeScanFiles";
 const FIELD_LABEL = "font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground";
 const ALLOWED = ["js", "ts", "jsx", "tsx", "py", "java", "kt", "php", "env", "json", "yml"];
 const ACCEPT = ALLOWED.map((extension) => `.${extension}`).join(",");
@@ -24,14 +27,24 @@ function isAuthenticated(user) {
 const hash = md5(password);`;
 
 export default function CodeScanForm({ busy = false, onSubmit }) {
-  const [code, setCode] = useState("");
-  const [files, setFiles] = useState([]);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const draft = readDraft(DRAFT_KEY) || {};
+  const [code, setCode] = useState(draft.code || "");
+  const [files, setFiles] = useState(readDraft(FILES_KEY) || []);
+  const [name, setName] = useState(draft.name || "");
+  const [email, setEmail] = useState(draft.email || "");
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState("");
   const [skipped, setSkipped] = useState([]);
   const fileInput = useRef(null);
+
+  useEffect(() => {
+    writeDraft(DRAFT_KEY, { code, name, email });
+  }, [code, name, email]);
+
+  // File contents can be large, so they are kept in memory for this session.
+  useEffect(() => {
+    writeDraft(FILES_KEY, files, { persist: false });
+  }, [files]);
 
   const addFiles = async (event) => {
     const picked = Array.from(event.target.files || []);

@@ -14,6 +14,7 @@ import ScanCode from '@/pages/ScanCode';
 import CodeReport from '@/pages/CodeReport';
 import Settings from '@/pages/Settings';
 import BottomNav from '@/components/BottomNav';
+import BackStackGuard from '@/components/BackStackGuard';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -42,6 +43,7 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <>
+      <BackStackGuard />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/scan" element={<Scan />} />
