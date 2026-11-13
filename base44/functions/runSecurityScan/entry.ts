@@ -13,41 +13,53 @@ const EXPECTED_SCHEMA = {
   ownership_confirmed: 'boolean — must be true (aliases accepted: ownershipConfirmed, authorized, confirmed)',
 };
 
+const PLATFORM_HEADER_NOTE =
+  "If your site is hosted on a platform that sets response headers itself (Vercel, Netlify, Cloudflare Pages, Base44, Wix, Shopify), this header has to be enabled in that platform's settings — application code cannot add it.";
+
 const HEADER_CHECKS = [
   {
     header: 'strict-transport-security',
     label: 'Strict-Transport-Security (HSTS)',
     severity: 'medium',
     why: 'tells browsers to refuse plain HTTP for your domain',
-    fix: 'Send Strict-Transport-Security: max-age=31536000; includeSubDomains on every HTTPS response.',
+    fix: [
+      'Send Strict-Transport-Security: max-age=31536000; includeSubDomains on every HTTPS response.',
+      PLATFORM_HEADER_NOTE,
+    ],
   },
   {
     header: 'content-security-policy',
     label: 'Content-Security-Policy',
     severity: 'medium',
     why: 'limits which scripts a page may run, blunting cross-site-scripting attacks',
-    fix: "Send a Content-Security-Policy: start with default-src 'self' and allow only the sources your site genuinely needs.",
+    fix: [
+      "Send a Content-Security-Policy: start with default-src 'self' and allow only the sources your site genuinely needs.",
+      PLATFORM_HEADER_NOTE,
+    ],
   },
   {
     header: 'x-frame-options',
     label: 'X-Frame-Options',
     severity: 'low',
     why: 'stops other sites embedding your pages to trick visitors',
-    fix: "Send X-Frame-Options: SAMEORIGIN (or frame-ancestors 'self' inside your Content-Security-Policy).",
+    fix: [
+      "Send X-Frame-Options: SAMEORIGIN (or frame-ancestors 'self' inside your Content-Security-Policy).",
+      PLATFORM_HEADER_NOTE,
+    ],
   },
   {
     header: 'x-content-type-options',
     label: 'X-Content-Type-Options',
     severity: 'low',
     why: 'stops browsers guessing a file type and running an upload as a script',
-    fix: 'Send X-Content-Type-Options: nosniff on every response.',
+    fix: ['Send X-Content-Type-Options: nosniff on every response.', PLATFORM_HEADER_NOTE],
   },
   {
     header: 'referrer-policy',
     label: 'Referrer-Policy',
     severity: 'low',
     why: "controls how much of your visitors' addresses leaks to other sites",
-    fix: 'Send Referrer-Policy: strict-origin-when-cross-origin.',
+    fix: ['Send Referrer-Policy: strict-origin-when-cross-origin.', PLATFORM_HEADER_NOTE],
   },
 ];
 
@@ -192,9 +204,10 @@ async function probe(url) {
     headers: { 'User-Agent': USER_AGENT, Accept: 'text/html,application/xhtml+xml' },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
   let body = '';
   if (response.status === 200) body = (await response.text()).slice(0, 60000);
-  return { status: response.status, body };
+  return { status: response.status, body, contentType };
 }
 
 async function probePaths(origin, paths) {
@@ -203,12 +216,48 @@ async function probePaths(origin, paths) {
     const chunk = paths.slice(index, index + 6);
     const settled = await Promise.allSettled(chunk.map((path) => probe(origin + path)));
     settled.forEach((entry, offset) => {
-      const value = entry.status === 'fulfilled' ? entry.value : { status: 0, body: '' };
-      results.push({ path: chunk[offset], status: value.status, body: value.body });
+      const value = entry.status === 'fulfilled' ? entry.value : { status: 0, body: '', contentType: '' };
+      results.push({ path: chunk[offset], status: value.status, body: value.body, contentType: value.contentType });
     });
   }
   return results;
 }
+
+// Single-page apps answer every unknown path with the same HTML shell. A 200 for
+// /.env is then meaningless, so compare the response against the homepage.
+function isSoftShell(result, homeHtml) {
+  if (!result || !result.contentType || !result.contentType.includes('text/html')) return false;
+
+  const body = result.body || '';
+  const home = homeHtml || '';
+  if (!body || !home) return false;
+  if (!/<div id="root"|id="app"|id="__next"|<script/i.test(body)) return false;
+
+  const normalize = (html) => html.replace(/\s+/g, '');
+  const probed = normalize(body);
+  const reference = normalize(home);
+  if (!probed.length || !reference.length) return false;
+
+  const difference = Math.abs(probed.length - reference.length) / Math.max(probed.length, reference.length);
+  if (difference > 0.15) return false;
+
+  const titleOf = (html) => ((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1] || '').trim();
+  return titleOf(body) === titleOf(home);
+}
+
+// Content a path must really carry before it counts as exposed.
+const PATH_RULES: Record<string, (body: string) => boolean> = {
+  '/.env': (body) => {
+    const keys = new Set([...body.matchAll(/^([A-Z][A-Z0-9_]{2,})\s*=/gm)].map((match) => match[1]));
+    return keys.size >= 2;
+  },
+  '/.git/config': (body) => /repositoryformatversion|\[core\]/.test(body),
+  '/backup.sql': (body) => /CREATE TABLE|INSERT INTO/.test(body),
+  '/phpinfo.php': (body) => /PHP Version|phpinfo\(\)/.test(body),
+  '/admin': (body) => /type="password"/.test(body),
+};
+
+const HTML_NEVER_EXPOSED = ['/.env', '/.git/config', '/backup.sql'];
 
 function insecureSubresources(html) {
   const matches = html.match(/(?:src|action)\s*=\s*["']http:\/\/[^"']+["']/gi);
@@ -299,7 +348,7 @@ async function checkHeaders(page, findings) {
         severity: entry.severity,
         evidence: [`The homepage response did not include ${entry.label}, which ${entry.why}.`],
         fix: [
-          entry.fix,
+          ...entry.fix,
           'Set the header where responses leave your site: a snippet in your web server config, a hosting panel rule, or a CDN setting.',
         ],
       });
@@ -378,16 +427,26 @@ async function checkForms(target, page, findings) {
   }
 }
 
-async function checkSensitivePaths(origin, findings) {
+async function checkSensitivePaths(origin, homeHtml, findings) {
   const results = await probePaths(origin, SENSITIVE_PATHS.map((entry) => entry.path));
 
   results.forEach((result, index) => {
     const entry = SENSITIVE_PATHS[index];
-    if (result.status !== 200 || !result.body || !entry.match.test(result.body)) return;
+    if (result.status !== 200 || !result.body) return;
+
+    // An app shell served for an unknown path says nothing about that path.
+    if (isSoftShell(result, homeHtml)) return;
+
+    const isHtml = (result.contentType || '').includes('text/html');
+    if (isHtml && HTML_NEVER_EXPOSED.includes(entry.path)) return;
+    if (!entry.match.test(result.body)) return;
+
+    const rule = PATH_RULES[entry.path];
+    if (rule && !rule(result.body)) return;
 
     const evidence = [`GET ${origin}${result.path} returned HTTP 200 with real content.`];
     if (entry.path === '/.env') {
-      const names = [...result.body.matchAll(/^\s*([A-Za-z_][A-Za-z0-9_]{2,})\s*=/gm)].map((match) => match[1]);
+      const names = [...result.body.matchAll(/^[A-Z][A-Z0-9_]{2,}\s*=/gm)].map((match) => match[1]);
       const unique = [...new Set(names)].slice(0, 5);
       if (unique.length) evidence.push(`Configuration keys exposed: ${unique.join(', ')} (values redacted).`);
     } else {
@@ -404,11 +463,13 @@ async function checkSensitivePaths(origin, findings) {
   });
 }
 
-async function checkListings(origin, findings) {
+async function checkListings(origin, homeHtml, findings) {
   const results = await probePaths(origin, LISTING_PATHS);
 
   results.forEach((result) => {
     if (result.status !== 200 || !result.body || !/index of \//i.test(result.body)) return;
+    if (!(result.contentType || '').includes('text/html')) return;
+    if (isSoftShell(result, homeHtml)) return;
     findings.push({
       id: `dirlist-${result.path.replace(/[^a-z0-9]+/gi, '-')}`,
       title: `Open directory listing at ${result.path}`,
@@ -508,12 +569,21 @@ export default async function (req) {
       origin = target.origin;
     }
 
+    // Does the host answer an impossible path with HTTP 200 HTML? If so it serves
+    // the app shell for everything and its 200s cannot be trusted.
+    const softProbe = await probe(`${origin}/ss-soft404-${Math.random().toString(36).slice(2, 10)}`).catch(() => ({
+      status: 0,
+      body: '',
+      contentType: '',
+    }));
+    const soft404 = softProbe.status === 200 && (softProbe.contentType || '').includes('text/html');
+
     const findings = [];
-    await Promise.all([
-      checkHttps(target, page, findings),
-      checkSensitivePaths(origin, findings),
-      checkListings(origin, findings),
-    ]);
+    const pathChecks = [checkHttps(target, page, findings)];
+    if (!soft404) {
+      pathChecks.push(checkSensitivePaths(origin, page.html, findings), checkListings(origin, page.html, findings));
+    }
+    await Promise.all(pathChecks);
     checkHeaders(page, findings);
     checkForms(target, page, findings);
     checkKeys(page, findings);

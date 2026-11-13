@@ -26,6 +26,8 @@ Anyone can build a website, bot, or app with AI today — but almost nobody secu
 | Missing `X-Content-Type-Options` | Low | Prevents browsers misinterpreting file types |
 | Missing `Referrer-Policy` | Low | Controls how much visitor data leaks to other sites |
 
+Single-page apps (React, Vue, Next) answer every unknown path with their app shell, which naive scanners misread as an exposed `/.env` or admin panel. SecureScan probes a random path first; when the host serves the app shell for everything, the exposed-path checks are skipped for that scan, and a match only counts when the response really carries the file's content type and shape.
+
 ### Code checks
 
 | Check | Severity | Why It Matters |
